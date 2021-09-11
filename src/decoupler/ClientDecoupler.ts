@@ -1,4 +1,4 @@
-import { HOST, PASSWORD, PORT, USERNAME, VERSION } from "../config";
+import { HOST, PASSWORD, PORT, USERNAME, VERSION, AUTH } from "../config";
 
 import {
   Client,
@@ -7,16 +7,7 @@ import {
   ServerClient,
 } from "minecraft-protocol";
 
-import WorldModule from "prismarine-world";
-const World = WorldModule(VERSION);
-
-import ChunkModule from "prismarine-chunk";
-import ChunkModuleLoader from "prismarine-chunk/types/chunk";
-import { Vec3 } from "vec3";
 import { WorldReplayHandler } from "./WorldReplayHandler";
-import { throws } from "assert";
-import { string } from "prismarine-nbt";
-const Chunk = (ChunkModule as any as typeof ChunkModuleLoader)(VERSION as any);
 
 export function createProxyClient() {
   return createClient({
@@ -25,6 +16,7 @@ export function createProxyClient() {
     username: USERNAME,
     password: PASSWORD,
     version: VERSION,
+    auth: AUTH,
     // keepAlive: false,
   });
 }
@@ -133,7 +125,7 @@ export default class DecoupledClient {
 
     this.worldReplayHandler.snoopInboundPacket(data, meta);
 
-    // TODO: chunks, entities (+tile es), stats, world border, receipes, scoreboard, teams, tablist
+    // TODO: entities (+tile es), stats, world border, receipes, scoreboard, teams, tablist
   }
 
   snoopOutboundPacket(data: any, meta: PacketMeta) {
