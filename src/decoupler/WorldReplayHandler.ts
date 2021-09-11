@@ -1,6 +1,6 @@
 import { Vec3 } from "vec3";
 import { Painting } from "./painting";
-import { VERSION } from "./config";
+import { VERSION } from "../config";
 import { PacketMeta, ServerClient } from "minecraft-protocol";
 
 const nbt = require("prismarine-nbt");

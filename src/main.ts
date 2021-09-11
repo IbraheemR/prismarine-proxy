@@ -1,4 +1,4 @@
-import DecoupledClient from "./ClientDecoupler";
+import DecoupledClient from "./decoupler/ClientDecoupler";
 import { createProxy } from "./proxy";
 
 const decoupledClient = new DecoupledClient();

@@ -1,4 +1,4 @@
-import { HOST, PASSWORD, PORT, USERNAME, VERSION } from "./config";
+import { HOST, PASSWORD, PORT, USERNAME, VERSION } from "../config";
 
 import {
   Client,
@@ -15,6 +15,7 @@ import ChunkModuleLoader from "prismarine-chunk/types/chunk";
 import { Vec3 } from "vec3";
 import { WorldReplayHandler } from "./WorldReplayHandler";
 import { throws } from "assert";
+import { string } from "prismarine-nbt";
 const Chunk = (ChunkModule as any as typeof ChunkModuleLoader)(VERSION as any);
 
 export function createProxyClient() {
@@ -116,6 +117,19 @@ export default class DecoupledClient {
     }
 
     if (meta.name === "abilities") this.latestData.abilities = data;
+    if (meta.name === "player_info") {
+      const d = data.data as PlayerInfoEntry[];
+      for (const newData of d) {
+        if (data.action === 0) this.player_info.set(newData.uuid, newData);
+        if (data.action === 1)
+          this.player_info.get(newData.uuid).gamemode = newData.gamemode;
+        if (data.action === 2)
+          this.player_info.get(newData.uuid).ping = newData.ping;
+        if (data.action === 3)
+          this.player_info.get(newData.uuid).displayName = newData.displayName;
+        if (data.action === 4) this.player_info.delete(newData.uuid);
+      }
+    }
 
     this.worldReplayHandler.snoopInboundPacket(data, meta);
 
@@ -149,6 +163,11 @@ export default class DecoupledClient {
 
     client.write("abilities", this.latestData.abilities);
 
+    client.write("player_info", {
+      action: 0,
+      data: Array.from(this.player_info, ([k, v]) => v),
+    });
+
     this.worldReplayHandler.replayIntroPackets(client);
   }
 
@@ -176,4 +195,15 @@ export default class DecoupledClient {
       walkingSpeed: 0,
     },
   };
+
+  private player_info = new Map<string, PlayerInfoEntry>();
+}
+
+interface PlayerInfoEntry {
+  properties: any;
+  uuid: string;
+  name: string;
+  gamemode: number;
+  ping: number;
+  displayName: string;
 }
