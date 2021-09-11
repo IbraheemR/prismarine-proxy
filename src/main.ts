@@ -6,13 +6,16 @@ const decoupledClient = new DecoupledClient();
 const server = createProxy({
   processInboundPacket(data, meta) {
     decoupledClient.snoopInboundPacket(data, meta);
-    return data;
+
+    if (!meta.name.includes("entity")) return data;
   },
   processOutboundPacket(data, meta) {
     if (meta.name === "chat" && data.message === "/#") {
       decoupledClient.end();
       return;
     }
+
+    decoupledClient.snoopOutboundPacket(data, meta);
 
     return data;
   },

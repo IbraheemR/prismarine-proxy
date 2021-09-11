@@ -1,6 +1,5 @@
 import {
   Client,
-  createClient,
   createServer,
   PacketMeta,
   ServerClient,
@@ -26,18 +25,14 @@ export function createProxy({
     motd: `Hotswap proxy server for §b§l${HOST}`,
   });
 
-  s.on("login", (client) => {
+  s.on("login", (userClient) => {
     let ended = false;
 
-    if (s.playerCount > 0) {
-      client.end();
-      return;
-    }
+    const fakeClient = getProxyClient(userClient);
 
-    const fakeClient = getProxyClient(client);
-
-    client.on("packet", (data, meta) => {
+    userClient.on("packet", (data, meta) => {
       if (ended) return;
+
       if (fakeClient.state !== states.PLAY || meta.state !== states.PLAY)
         return;
 
@@ -48,12 +43,14 @@ export function createProxy({
 
     fakeClient.on("packet", (data, meta) => {
       if (ended) return;
-      if (meta.state !== states.PLAY || client.state !== states.PLAY) return;
+
+      if (meta.state !== states.PLAY || userClient.state !== states.PLAY)
+        return;
       if (meta.name === "keep_alive") return; // Do not relay keep-alive packets - the proxy client will handle them.
 
       let newData = processInboundPacket(data, meta);
 
-      if (newData) client.write(meta.name, newData);
+      if (newData) userClient.write(meta.name, newData);
     });
   });
 

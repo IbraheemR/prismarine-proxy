@@ -1,10 +1,21 @@
+import { HOST, PASSWORD, PORT, USERNAME, VERSION } from "./config";
+
 import {
   Client,
   createClient,
   PacketMeta,
   ServerClient,
 } from "minecraft-protocol";
-import { HOST, PASSWORD, PORT, USERNAME, VERSION } from "./config";
+
+import WorldModule from "prismarine-world";
+const World = WorldModule(VERSION);
+
+import ChunkModule from "prismarine-chunk";
+import ChunkModuleLoader from "prismarine-chunk/types/chunk";
+import { Vec3 } from "vec3";
+import { WorldReplayHandler } from "./WorldReplayHandler";
+import { throws } from "assert";
+const Chunk = (ChunkModule as any as typeof ChunkModuleLoader)(VERSION as any);
 
 export function createProxyClient() {
   return createClient({
@@ -20,6 +31,8 @@ export function createProxyClient() {
 export default class DecoupledClient {
   fakeClient: Client | null = null;
   private ended = false;
+
+  private worldReplayHandler = new WorldReplayHandler();
 
   getOrCreateProxyClient(client: ServerClient) {
     if (!this.fakeClient) {
@@ -70,7 +83,7 @@ export default class DecoupledClient {
     this.fakeClient?.end();
   }
 
-  snoopInboundPacket(data: any, meta: PacketMeta) {
+  async snoopInboundPacket(data: any, meta: PacketMeta) {
     if (meta.name === "login") {
       this.latestData.loginPacket = data;
     }
@@ -101,6 +114,18 @@ export default class DecoupledClient {
       this.latestData.z = data.z;
       this.latestData.onGround = data.onGround;
     }
+    this.worldReplayHandler.snoopInboundPacket(data, meta);
+
+    // TODO: chunks, entities (+tile es), stats, world border, receipes, abilities, scoreboard, teams
+  }
+
+  snoopOutboundPacket(data: any, meta: PacketMeta) {
+    if (meta.name === "position" || meta.name === "position_look") {
+      this.latestData.x = data.x;
+      this.latestData.y = data.y;
+      this.latestData.z = data.z;
+      // TODO: YAW/pitch?
+    }
   }
 
   private replayIntroPackets(client: ServerClient) {
@@ -116,6 +141,8 @@ export default class DecoupledClient {
       yaw: 0,
       flags: 0x00,
     });
+
+    this.worldReplayHandler.replayIntroPackets(client);
   }
 
   private latestData = {
@@ -135,8 +162,17 @@ export default class DecoupledClient {
       levelType: "default",
       reducedDebugInfo: true,
     },
-    // TODO: tab list, chunk data, entities.
+    // TODO: tab list, entities.
   };
+
+  private world = new World();
+}
+
+function getChunkHash(x: number, z: number) {
+  const i = 1664525n * BigInt(x) + 1013904223n;
+  const j = 1664525n * (BigInt(z) ^ -559038737n) + 1013904223n;
+
+  return i ^ j;
 }
 
 interface LoginPacketData {

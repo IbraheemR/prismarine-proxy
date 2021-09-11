@@ -1,4 +1,13 @@
 {
   "extends": "@tsconfig/node14/tsconfig.json",
-  "compilerOptions": { "noImplicitAny": true, "strict": false }
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "strict": false,
+    "esModuleInterop": true,
+    "allowJs": true
+  },
+  "ts-node": {
+    "files": true
+  },
+  "files": ["src/types.d.ts"]
 }
