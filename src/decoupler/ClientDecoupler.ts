@@ -125,7 +125,8 @@ export default class DecoupledClient {
 
     this.worldReplayHandler.snoopInboundPacket(data, meta);
 
-    // TODO: entities (+tile es), stats, world border, receipes, scoreboard, teams, tablist
+    // TODO: entities (+tile es), stats, world border, receipes, advancements(?)
+    // WONTDO: teams, scoreboard
   }
 
   snoopOutboundPacket(data: any, meta: PacketMeta) {
@@ -185,6 +186,12 @@ export default class DecoupledClient {
       flags: 0,
       flyingSpeed: 0,
       walkingSpeed: 0,
+    },
+
+    worldborder: {
+      diameter: 0,
+      x: 0,
+      z: 0,
     },
   };
 

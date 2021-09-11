@@ -6,8 +6,7 @@ import { PacketMeta, ServerClient } from "minecraft-protocol";
 const nbt = require("prismarine-nbt");
 
 import ChunkLoader from "prismarine-chunk/types/chunk";
-const Chunk: ReturnType<typeof ChunkLoader> =
-  require("prismarine-chunk")(VERSION);
+const Chunk: ReturnType<typeof ChunkLoader> = require("prismarine-chunk")(1.12);
 
 const ChatMessage = require("prismarine-chat")(VERSION);
 
@@ -24,7 +23,7 @@ export class WorldReplayHandler {
 
   private world = new World().sync;
 
-  private dimension: string;
+  private dimension: number;
 
   constructor() {}
 
@@ -122,14 +121,17 @@ export class WorldReplayHandler {
       column = new Chunk(null);
     }
 
-    column.load(args.data, args.bitMap, args.skyLightSent, args.groundUp);
-    if (args.biomes !== undefined) {
-      column.loadBiomes(args.biomes);
-    }
-    this.world.setColumn(args.x, args.z, column);
+    try {
+      column.load(args.data, args.bitMap, args.skyLightSent, args.groundUp);
+      if (args.biomes !== undefined) {
+        column.loadBiomes(args.biomes);
+      }
+      this.world.setColumn(args.x, args.z, column);
+    } catch (error) {}
   }
 
   private async switchWorld() {
+    console.log(this.dimension);
     if (this.world) {
       for (const [x, z] of Object.keys(this.world.async.columns).map((key) =>
         key.split(",").map((x) => parseInt(x, 10))
@@ -164,7 +166,7 @@ export class WorldReplayHandler {
         bitMap: data.bitMap,
         heightmaps: data.heightmaps,
         biomes: data.biomes,
-        skyLightSent: true, // HACK: bot.game.dimension === "minecraft:overworld",
+        skyLightSent: this.dimension === 0,
         groundUp: data.groundUp,
         data: data.chunkData,
       });
