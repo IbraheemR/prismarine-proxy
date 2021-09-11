@@ -114,9 +114,12 @@ export default class DecoupledClient {
       this.latestData.z = data.z;
       this.latestData.onGround = data.onGround;
     }
+
+    if (meta.name === "abilities") this.latestData.abilities = data;
+
     this.worldReplayHandler.snoopInboundPacket(data, meta);
 
-    // TODO: chunks, entities (+tile es), stats, world border, receipes, abilities, scoreboard, teams
+    // TODO: chunks, entities (+tile es), stats, world border, receipes, scoreboard, teams, tablist
   }
 
   snoopOutboundPacket(data: any, meta: PacketMeta) {
@@ -126,6 +129,8 @@ export default class DecoupledClient {
       this.latestData.z = data.z;
       // TODO: YAW/pitch?
     }
+
+    if (meta.name === "abilities") this.latestData.abilities = data;
   }
 
   private replayIntroPackets(client: ServerClient) {
@@ -141,6 +146,8 @@ export default class DecoupledClient {
       yaw: 0,
       flags: 0x00,
     });
+
+    client.write("abilities", this.latestData.abilities);
 
     this.worldReplayHandler.replayIntroPackets(client);
   }
@@ -162,25 +169,11 @@ export default class DecoupledClient {
       levelType: "default",
       reducedDebugInfo: true,
     },
-    // TODO: tab list, entities.
+
+    abilities: {
+      flags: 0,
+      flyingSpeed: 0,
+      walkingSpeed: 0,
+    },
   };
-
-  private world = new World();
-}
-
-function getChunkHash(x: number, z: number) {
-  const i = 1664525n * BigInt(x) + 1013904223n;
-  const j = 1664525n * (BigInt(z) ^ -559038737n) + 1013904223n;
-
-  return i ^ j;
-}
-
-interface LoginPacketData {
-  entityId: number;
-  gameMode: number;
-  dimension: number;
-  difficulty: number;
-  maxPlayers: number;
-  levelType: string;
-  reducedDebugInfo: boolean;
 }
