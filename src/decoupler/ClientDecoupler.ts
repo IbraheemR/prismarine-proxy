@@ -87,16 +87,9 @@ export default class DecoupledClient {
       this.latestData.loginPacket.levelType = data.levelType;
     }
     if (meta.name === "game_state_change") {
-      // this.latestData.gamemode = data.gameMode;
-      // Could also handle raining here etc but wont for now.
-      // Might need to deal with some end TP stuff
-
       if (data.reason === 3) {
         this.latestData.loginPacket.gameMode = data.gameMode;
       }
-    }
-    if (meta.name === "player_info") {
-      // console.log(data);
     }
     if (meta.name === "difficulty") {
       this.latestData.loginPacket.difficulty = data.difficulty;
@@ -125,8 +118,9 @@ export default class DecoupledClient {
 
     this.worldReplayHandler.snoopInboundPacket(data, meta);
 
-    // TODO: entities (+tile es), stats, world border, receipes, advancements(?)
-    // WONTDO: teams, scoreboard
+    // TODO: entities (+tile e's, item collect), stats, world border, DEATH, health, experience, slot?, map?
+    // WONTDO: teams, scoreboard, resourcepack, camera
+    // MAYBE: recipes, advancements, bed, passengers, spawn_pos, playerlist_header
   }
 
   snoopOutboundPacket(data: any, meta: PacketMeta) {
@@ -189,9 +183,14 @@ export default class DecoupledClient {
     },
 
     worldborder: {
-      diameter: 0,
+      old_radius: 0,
+      new_radius: 0,
+      speed: 0,
       x: 0,
       z: 0,
+      portalBoundary: 0,
+      warning_time: 0,
+      warning_blocks: 0,
     },
   };
 

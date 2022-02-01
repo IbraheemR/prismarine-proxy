@@ -7,14 +7,9 @@ const server = createProxy({
   processInboundPacket(data, meta) {
     decoupledClient.snoopInboundPacket(data, meta);
 
-    if (!meta.name.includes("entity")) return data;
+    return data;
   },
   processOutboundPacket(data, meta) {
-    if (meta.name === "chat" && data.message === "/#") {
-      decoupledClient.end();
-      return;
-    }
-
     decoupledClient.snoopOutboundPacket(data, meta);
 
     return data;
